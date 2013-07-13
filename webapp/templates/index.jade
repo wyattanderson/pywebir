@@ -1,0 +1,18 @@
+!!!
+html
+head
+    title
+    meta(name="viewport", content="initial-scale=1.0")
+    - assets "css"
+    link(rel="stylesheet", href=ASSET_URL, type="text/css")
+    - endassets
+    - assets "js"
+    script(src=ASSET_URL)
+    - endassets
+body
+    #content
+
+    script#button-view(type="text/template")
+        button.action <%= id %>
+    script(type="text/javascript")
+        IRApp.start(JSON.parse('{{ config|tojson|safe }}'));
