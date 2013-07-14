@@ -10,43 +10,59 @@ class ACState:
 
     def btn_auto(self):
         self.auto = not self.auto
+        return True
 
     def btn_cool(self):
+        changed = self.mode != Mode.Cool
         self.mode = Mode.Cool
+        return changed
 
     def btn_eco(self):
+        changed = self.mode != Mode.Eco
         self.mode = Mode.Eco
+        return changed
 
     def btn_fan(self):
+        changed = self.mode != Mode.Fan
         self.mode = Mode.Fan
+        return changed
 
     def btn_fan_faster(self):
-        self.fan_speed = min(self.fan_speed + 1, FanSpeed.High)
+        new_speed = min(self.fan_speed + 1, FanSpeed.High)
+        changed = self.fan_speed != new_speed
+        self.fan_speed = new_speed
+        return changed
 
     def btn_fan_slower(self):
-        self.fan_speed = max(self.fan_speed - 1, FanSpeed.Low)
+        new_speed = max(self.fan_speed - 1, FanSpeed.Low)
+        changed = self.fan_speed != new_speed
+        self.fan_speed = new_speed
+        return changed
 
     def btn_power(self):
         self.power = not self.power
+        return True
 
     def btn_temp_up(self):
         if self.mode == Mode.Fan:
-            return
+            return False
         self.temperature += 1
+        return True
 
     def btn_temp_down(self):
         if self.mode == Mode.Fan:
-            return
+            return False
         self.temperature -= 1
+        return True
 
     def apply_button(self, button):
         button_slug = re.sub(r'[^a-z]', r'_', button)
         fn = getattr(self, 'btn_' + button_slug)
         if button_slug != 'power' and not self.power:
-            return
+            return False
 
         if fn:
-            fn()
+            return fn()
 
     def export(self):
         return dict([

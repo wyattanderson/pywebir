@@ -49,24 +49,25 @@ def index():
 def do_button(button):
     global buttons, state
 
-    button_data = buttons[button]
-    buf = bytearray(base64.b64decode(button_data['irdata']))
-    sp = serial.Serial('/dev/ttyACM0')
-    sp.write("\0\0\0\0\0")
-    sleep()
-    sp.write("S")
-    sleep()
-    sp.write("\x03")
-    sleep()
-    sp.write(buf)
-    sleep()
-    sp.write("\0")
-    sleep()
-    sp.write("S")
-    sleep()
-    sp.close()
+    should_send = state.apply_button(button)
 
-    state.apply_button(button)
+    if should_send:
+        button_data = buttons[button]
+        buf = bytearray(base64.b64decode(button_data['irdata']))
+        sp = serial.Serial('/dev/ttyACM0')
+        sp.write("\0\0\0\0\0")
+        sleep()
+        sp.write("S")
+        sleep()
+        sp.write("\x03")
+        sleep()
+        sp.write(buf)
+        sleep()
+        sp.write("\0")
+        sleep()
+        sp.write("S")
+        sleep()
+        sp.close()
 
     return jsonify(state.export())
 
