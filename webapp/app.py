@@ -6,10 +6,11 @@ import time
 from flask import Flask, render_template
 from flask.ext.assets import Environment, Bundle
 app = Flask(__name__)
-app.debug = True
+app.debug = os.getenv('DEBUG', 'true').lower() == 'true'
 
 assets = Environment(app)
-assets.debug = True
+assets.debug = app.debug
+assets.auto_build = app.debug
 
 BIN_DIR = 'bins'
 bins = dict()
@@ -31,12 +32,13 @@ def index():
     global bins
 
     config = {
-            'bins': [dict(id=key) for key in bins.keys()],
+            'bins': sorted([dict(id=key) for key in bins.keys()]),
             }
     return render_template('index.jade', config=config)
 
 @app.route("/do-bin/<bin_name>/")
 def do_bin(bin_name):
+    return "OK"
     with open(os.path.join(BIN_DIR, "%s.bin" % bin_name), 'r') as f:
         buf = bytearray(f.read())
         sp = serial.Serial('/dev/ttyACM0')
