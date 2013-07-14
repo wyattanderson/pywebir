@@ -1,62 +1,79 @@
+import base64
+import json
 import os
 import serial
 import sys
 import time
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask.ext.assets import Environment, Bundle
+
+from state import ACState
+
 app = Flask(__name__)
 app.debug = os.getenv('DEBUG', 'true').lower() == 'true'
 
 assets = Environment(app)
 assets.debug = app.debug
 assets.auto_build = app.debug
+app.config['STYLUS_PLUGINS'] = ['nib']
 
-BIN_DIR = 'bins'
-bins = dict()
-for binfile in os.listdir(BIN_DIR):
-    binfile = os.path.abspath(
-            os.path.join(BIN_DIR, binfile))
-    with open(binfile, 'r') as f:
-        (root, ext) = os.path.splitext(
-                os.path.basename(binfile))
-        bins[root] = f.read()
+BUTTON_DIR = os.path.join(os.path.dirname(__file__), 'button_json')
+buttons = dict()
+for button_file in os.listdir(BUTTON_DIR):
+    button_file = os.path.abspath(
+            os.path.join(BUTTON_DIR, button_file))
+
+    with open(button_file, 'r') as f:
+        button_data = json.load(f)
+        buttons[button_data['id']] = button_data
 
 app.jinja_env.add_extension('pyjade.ext.jinja.PyJadeExtension')
+
+state = ACState()
 
 def sleep():
     time.sleep(0.05)
 
 @app.route("/")
 def index():
-    global bins
+    global buttons, state
 
     config = {
-            'bins': sorted([dict(id=key) for key in bins.keys()]),
+            'buttons': buttons.values(),
+            'state': state.export(),
             }
     return render_template('index.jade', config=config)
 
-@app.route("/do-bin/<bin_name>/")
-def do_bin(bin_name):
-    return "OK"
-    with open(os.path.join(BIN_DIR, "%s.bin" % bin_name), 'r') as f:
-        buf = bytearray(f.read())
-        sp = serial.Serial('/dev/ttyACM0')
-        sp.write("\0\0\0\0\0")
-        sleep()
-        sp.write("S")
-        sleep()
-        sp.write("\x03")
-        sleep()
-        sp.write(buf)
-        sleep()
-        sp.write("\0")
-        sleep()
-        sp.write("S")
-        sleep()
-        sp.close()
+@app.route("/do-button/<button>/")
+def do_button(button):
+    global buttons, state
 
-    return "OK"
+    button_data = buttons[button]
+    buf = bytearray(base64.b64decode(button_data['irdata']))
+    sp = serial.Serial('/dev/ttyACM0')
+    sp.write("\0\0\0\0\0")
+    sleep()
+    sp.write("S")
+    sleep()
+    sp.write("\x03")
+    sleep()
+    sp.write(buf)
+    sleep()
+    sp.write("\0")
+    sleep()
+    sp.write("S")
+    sleep()
+    sp.close()
+
+    state.apply_button(button)
+
+    return jsonify(state.export())
+
+@app.route("/state/")
+def get_state():
+    global state
+    return jsonify(state.export())
 
 css = Bundle(
         'stylus/base.styl',

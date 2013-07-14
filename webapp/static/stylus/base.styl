@@ -1,14 +1,79 @@
-@import 'static/stylus/reset'
+@import 'reset'
+@import 'nib'
 
 body
     min-height 568px
+    font-family 'Roboto', sans-serif
+    color white
+    image '/static/img/squairy_light.png' 200px 200px
+    background-repeat repeat repeat
 
 button
     width 100%
     height 44px
     margin-bottom 5px
+    text-transform uppercase
 
-.bin-collection-view
+.state-view
+    text-transform uppercase
+    font-weight 900
+    display table
+    width 100%
+    height 84px
+
+    border 1px solid #868686
+    border-radius 5px
+    image '/static/img/black_mamba.png' 192px 192px
+    background-repeat repeat repeat
+    padding 10px
+    box-sizing border-box
+    margin-bottom 10px
+
+    ul, li
+        list-style none
+        margin 0
+        padding 0
+
+    .states, .temperature
+        display table-cell
+        width 50%
+        vertical-align middle
+
+    &.power-off .states
+        li
+            color #333
+        li.power
+            color red
+
+    .states
+        li.power
+            color green
+
+    .auto
+        &.auto-disabled
+            color: #333
+
+    .temperature
+        text-align center
+        font-size 36px
+        line-height 36px
+
+    &.power-off .temperature
+            color #333
+
+.button-collection-view
     list-style none
     margin 0
     padding 0
+
+    li
+        display inline-block
+        width 50%
+        box-sizing border-box
+        padding 5px
+
+        button
+            border-radius 5px
+            background linear-gradient(top, #ddd, #ccc)
+            border 1px solid #999
+

@@ -1,7 +1,8 @@
 IRApp = new Backbone.Marionette.Application
 
 IRApp.addRegions
-    content: '#content'
+    controls: '#controls'
+    display: '#display'
 
 IRApp.addInitializer (options) ->
     new FastClick document.body
@@ -11,12 +12,30 @@ IRApp.addInitializer (options) ->
             window.scrollTo 0, 1
 
 IRApp.on 'start', (options) ->
-    binCollection = new BinCollection options.bins
-    collectionView = new BinCollectionView
-        collection: binCollection
-    IRApp.content.show collectionView
+    buttonCollection = new ButtonCollection options.buttons
+    collectionView = new ButtonCollectionView
+        collection: buttonCollection
+    IRApp.controls.show collectionView
 
-class BinCollection extends Backbone.Collection
+    state = new State options.state
+    stateView = new StateView
+        model: state
+    IRApp.display.show stateView
+
+    state.on 'change', ->
+        stateView.render()
+
+    collectionView.on 'itemview:click', (itemView, id, cb) ->
+        $.ajax
+            url: "/do-button/#{id}/"
+            success: (newState) ->
+                state.set newState
+                console.log state
+                cb newState
+
+class State extends Backbone.Model
+
+class ButtonCollection extends Backbone.Collection
 
 class ButtonView extends Backbone.Marionette.ItemView
     tagName: 'li'
@@ -27,13 +46,25 @@ class ButtonView extends Backbone.Marionette.ItemView
         button: 'button'
 
     handleAction: (event) ->
+        @trigger 'click', @model.get('id'), @onSuccess
         @ui.button.attr 'disabled', 'disabled'
-        $.ajax
-            url: "/do-bin/#{@model.get 'id'}/"
-            success: =>
-                @ui.button.removeAttr 'disabled'
 
-class BinCollectionView extends Backbone.Marionette.CollectionView
+    onSuccess: =>
+        @ui.button.removeAttr 'disabled'
+
+class ButtonCollectionView extends Backbone.Marionette.CollectionView
     tagName: 'ul'
-    className: 'bin-collection-view'
+    className: 'button-collection-view'
     itemView: ButtonView
+
+class StateView extends Backbone.Marionette.ItemView
+    template: '#state-view'
+    className: 'state-view'
+
+    onRender: ->
+        if @model.get 'power'
+            @$el.addClass('power-on')
+                .removeClass('power-off')
+        else
+            @$el.addClass('power-off')
+                .removeClass('power-on')
