@@ -1,5 +1,6 @@
 Flask==0.10.1
 Flask-Assets==0.8
+Flask-Script==0.5.3
 Jinja2==2.7
 MarkupSafe==0.18
 Twisted==13.1.0
@@ -8,6 +9,6 @@ argparse==1.2.1
 itsdangerous==0.22
 pyjade==2.0.2
 pyserial==2.6
-webassets==0.8
 wsgiref==0.1.2
 zope.interface==4.0.5
+-e git+git@github.com:miracle2k/webassets.git#egg=webassets
