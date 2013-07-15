@@ -75,6 +75,11 @@ class ACState:
                 ]
             ])
 
+    def unexport(self, values):
+        for key, value in values.iteritems():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
 class FanSpeed:
     Low, Medium, High = range(3)
 
