@@ -5,13 +5,15 @@ import serial
 import sys
 import time
 
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, url_for
 from flask.ext.assets import Environment, Bundle
 
 from state import ACState
+from proxy import ReverseProxied
 
 app = Flask(__name__)
 app.debug = os.getenv('DEBUG', 'true').lower() == 'true'
+app.wsgi_app = ReverseProxied(app.wsgi_app)
 
 assets = Environment(app)
 assets.debug = app.debug
@@ -49,6 +51,7 @@ def index():
     config = {
             'buttons': buttons.values(),
             'state': state.export(),
+            'apiUrl': url_for('.do_button', button='PLACEHOLDER'),
             }
     return render_template('index.jade', config=config)
 

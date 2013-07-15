@@ -27,7 +27,7 @@ IRApp.on 'start', (options) ->
 
     collectionView.on 'itemview:click', (itemView, id, cb) ->
         $.ajax
-            url: "/do-button/#{id}/"
+            url: options.apiUrl.replace 'PLACEHOLDER', id
             success: (newState) ->
                 state.set newState
                 console.log state
