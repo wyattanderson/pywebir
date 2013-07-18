@@ -36,6 +36,17 @@ IRApp.on 'start', (options) ->
 class State extends Backbone.Model
 
 class ButtonCollection extends Backbone.Collection
+    comparator: (lhs, rhs) ->
+        sort = 0
+        if lhs.get('order') isnt rhs.get('order')
+            sort = if lhs.get('order') < (rhs.get('order') ? Number.MAX_VALUE)
+                -1
+            else
+                1
+        else
+            sort = 1
+
+        sort
 
 class ButtonView extends Backbone.Marionette.ItemView
     tagName: 'li'
