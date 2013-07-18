@@ -51,6 +51,8 @@ class ButtonCollection extends Backbone.Collection
 class ButtonView extends Backbone.Marionette.ItemView
     tagName: 'li'
     template: '#button-view'
+    className: ->
+        "button-#{@model.get 'id'}"
     events:
         'click .action': 'handleAction'
     ui:
