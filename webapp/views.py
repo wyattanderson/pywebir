@@ -1,24 +1,13 @@
-import base64
-import json
 import os
+import json
+import base64
 import serial
-import sys
 import time
 
-from flask import Flask, render_template, jsonify, url_for
-from flask.ext.assets import Environment, Bundle
-
+from flask import render_template, jsonify, url_for
 from state import ACState
-from proxy import ReverseProxied
-
-app = Flask(__name__)
-app.debug = os.getenv('DEBUG', 'true').lower() == 'true'
-app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-assets = Environment(app)
-assets.debug = app.debug
-assets.auto_build = app.debug
-app.config['STYLUS_PLUGINS'] = ['nib']
+from tasks.ir import send_ir_command
+from webapp import app
 
 BUTTON_DIR = os.path.join(os.path.dirname(__file__), 'button_json')
 buttons = dict()
@@ -30,8 +19,6 @@ for button_file in os.listdir(BUTTON_DIR):
         button_data = json.load(f)
         buttons[button_data['id']] = button_data
 
-app.jinja_env.add_extension('pyjade.ext.jinja.PyJadeExtension')
-
 state = ACState()
 try:
     with open(os.path.join(os.path.dirname(__file__),
@@ -40,9 +27,6 @@ try:
         state.unexport(state_values)
 except IOError, e:
     pass
-
-def sleep():
-    time.sleep(0.05)
 
 @app.route("/")
 def index():
@@ -64,6 +48,10 @@ def do_button(button):
         'state.json'), 'w') as state_save:
         json.dump(state.export(), state_save)
 
+    send_ir_command.delay('what')
+    return jsonify(state.export())
+
+    should_send = False
     if should_send:
         button_data = buttons[button]
         buf = bytearray(base64.b64decode(button_data['irdata']))
@@ -88,28 +76,3 @@ def do_button(button):
 def get_state():
     global state
     return jsonify(state.export())
-
-css = Bundle(
-        'stylus/base.styl',
-        filters='stylus',
-        output='assets/css/base.css',
-        debug=False)
-assets.register('css', css)
-
-coffee = Bundle(
-        'coffee/app.coffee',
-        filters='coffeescript',
-        output='assets/js/app.js')
-js = Bundle(
-        'js/jquery-2.0.3.js',
-        'js/underscore.js',
-        'js/backbone.js',
-        'js/backbone.marionette.js',
-        'js/fastclick.js',
-        coffee,
-        filters='uglifyjs',
-        output='assets/js/base.js')
-assets.register('js', js)
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0')

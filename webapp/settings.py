@@ -1,0 +1,2 @@
+DEBUG = True
+STYLUS_PLUGINS = 'nib'
