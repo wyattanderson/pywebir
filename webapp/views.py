@@ -48,28 +48,10 @@ def do_button(button):
         'state.json'), 'w') as state_save:
         json.dump(state.export(), state_save)
 
-    send_ir_command.delay('what')
-    return jsonify(state.export())
-
-    should_send = False
+    button_data = buttons[button]
+    buf = bytearray(base64.b64decode(button_data['irdata']))
     if should_send:
-        button_data = buttons[button]
-        buf = bytearray(base64.b64decode(button_data['irdata']))
-        sp = serial.Serial('/dev/ttyACM0')
-        sp.write("\0\0\0\0\0")
-        sleep()
-        sp.write("S")
-        sleep()
-        sp.write("\x03")
-        sleep()
-        sp.write(buf)
-        sleep()
-        sp.write("\0")
-        sleep()
-        sp.write("S")
-        sleep()
-        sp.close()
-
+        send_ir_command.delay(buf)
     return jsonify(state.export())
 
 @app.route("/state/")

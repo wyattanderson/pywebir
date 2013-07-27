@@ -31,9 +31,6 @@ app.config['STYLUS_PLUGINS'] = ['nib']
 
 app.jinja_env.add_extension('pyjade.ext.jinja.PyJadeExtension')
 
-def sleep():
-    time.sleep(0.05)
-
 css = Bundle(
         'stylus/base.styl',
         filters='stylus',
