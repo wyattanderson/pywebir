@@ -6,7 +6,7 @@ from capture import TransmitIrToy
 from celery.signals import worker_shutdown
 
 def sleep():
-    time.sleep(0.05)
+    time.sleep(0.25)
 
 @celery.task
 def send_ir_command(irdata):
