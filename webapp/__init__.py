@@ -18,12 +18,6 @@ if os.getenv('PYWEBIR_SETTINGS'):
 app.debug = os.getenv('DEBUG', 'true').lower() == 'true'
 app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-app.config.update(
-        CELERY_BROKER_URL='redis://192.168.1.148:6379',
-        CELERY_RESULT_BACKEND='redis://192.168.1.148:6379',
-        CELERYD_CONCURRENCY=1
-        )
-
 assets = Environment(app)
 assets.debug = app.debug
 assets.auto_build = app.debug
