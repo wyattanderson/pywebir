@@ -1,0 +1,9 @@
+uwsgi:
+    master: 1
+    processes: 2
+    module: runserver
+    callable: app
+    http: localhost:5000
+    check-static: static/
+    attach-daemon: celery -A runserver worker
+
