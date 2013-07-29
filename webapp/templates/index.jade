@@ -1,8 +1,10 @@
 !!!
 html
 head
-    title
+    title A/C Control
     meta(name="viewport", content="initial-scale=1.0")
+    meta(name="apple-mobile-web-app-capable", content="yes")
+    meta(name="apple-modile-web-app-status-bar-style", content="black")
     link(href='//fonts.googleapis.com/css?family=Pathway+Gothic+One|Roboto:400,900,700', rel='stylesheet', type='text/css')
 
     - assets "css"
@@ -19,7 +21,7 @@ body
         button.action <%= title %>
     script#state-view(type="text/template")
         ul.states
-            li.power <%= power ? 'on' : 'off' %>
+            li.power <%= power ? 'a/c on' : 'a/c off' %>
             li.fan_speed <%= {0: 'low', 1: 'medium', 2: 'high'}[fan_speed] %>
             li.mode <%= {0: 'eco', 1: 'cool', 2: 'fan'}[mode] %>
             li.auto(class="<%= auto ? 'auto-enabled' : 'auto-disabled' %>") auto
