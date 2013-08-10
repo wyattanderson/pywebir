@@ -9,3 +9,39 @@ Pi](http://www.raspberrypi.org/) to accomplish the task.
 ## Screenshot
 
 ![iPhone 5](http://wyattanderson.github.io/pywebir/screenshot.png)
+
+## Making it work on Arch
+
+Install Arch on your RaspberryPi. You can use Raspbian if you want, but uWSGI
+won't work since the Raspbian Python package doesn't include a shared library.
+
+    # pacman -Syu
+    # pacman -S nodejs python2 python2-virtualenv base-devel redis tmux
+
+You'll also need to either run all of this as `root` or add a user for
+yourself. Make sure the new user is in the `uucp` group so that it can access
+the serial port:
+
+    # useradd -G wheel,uucp -m <YOUR USER>
+    # passwd <YOUR USER>
+
+Set up a virtualenv:
+
+    $ virtualenv-2.7 env
+    $ source env/bin/activate
+    $ pip install -r requirements.txt
+
+Sit back and relax. This'll take some time. When you're done, then install the
+necessary NodeJS packages for building the static assets:
+
+    # sudo npm install -g uglify-js coffee-script stylus nib
+
+Take a look at the `settings.py` file and either edit that file or add your
+own `webapp.cfg` file to the `webapp/` directory. Then, build the assets and
+start the server:
+
+    $ python manage.py assets build
+    $ tmux uwsgi -y webapp/uwsgi.yaml --env PYWEBIR_SETTINGS=webapp.cfg
+
+Then, you can access the web interface at `http://alarmpi:5000/` (or whatever
+your RPi's hostname/IP is).
