@@ -5,6 +5,7 @@ import serial
 import sys
 import time
 
+from redis import StrictRedis
 from flask import Flask, render_template, jsonify, url_for
 from flask.ext.assets import Environment, Bundle
 
@@ -46,5 +47,8 @@ js = Bundle(
         filters='uglifyjs',
         output='assets/js/base.js')
 assets.register('js', js)
+
+redis = StrictRedis(host=settings.REDIS_HOST,
+                    port=settings.REDIS_PORT)
 
 import views

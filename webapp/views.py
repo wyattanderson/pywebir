@@ -1,13 +1,14 @@
-import os
-import json
 import base64
+import json
+import os
+import pickle
 import serial
 import time
 
 from flask import render_template, jsonify, url_for
 from state import ACState
 from tasks.ir import send_ir_command
-from webapp import app
+from webapp import app, redis, settings
 
 BUTTON_DIR = os.path.join(os.path.dirname(__file__), 'button_json')
 buttons = dict()
@@ -19,18 +20,23 @@ for button_file in os.listdir(BUTTON_DIR):
         button_data = json.load(f)
         buttons[button_data['id']] = button_data
 
-state = ACState()
-try:
-    with open(os.path.join(os.path.dirname(__file__),
-        'state.json'), 'r') as state_save:
-        state_values = json.load(state_save)
-        state.unexport(state_values)
-except IOError, e:
-    pass
+def get_state():
+    state = None
+    if redis.exists(settings.REDIS_SETTINGS_KEY):
+        state = pickle.loads(redis.get(
+            settings.REDIS_SETTINGS_KEY))
+    else:
+        state = ACState()
+    return state
+
+def save_state(state):
+    redis.set(settings.REDIS_SETTINGS_KEY,
+              pickle.dumps(state))
 
 @app.route("/")
 def index():
-    global buttons, state
+    global buttons
+    state = get_state()
 
     config = {
             'buttons': buttons.values(),
@@ -41,12 +47,11 @@ def index():
 
 @app.route("/do-button/<button>/")
 def do_button(button):
-    global buttons, state
+    global buttons
+    state = get_state()
 
     should_send = state.apply_button(button)
-    with open(os.path.join(os.path.dirname(__file__),
-        'state.json'), 'w') as state_save:
-        json.dump(state.export(), state_save)
+    save_state(state)
 
     button_data = buttons[button]
     buf = bytearray(base64.b64decode(button_data['irdata']))
@@ -55,6 +60,6 @@ def do_button(button):
     return jsonify(state.export())
 
 @app.route("/state/")
-def get_state():
-    global state
+def state():
+    state = get_state()
     return jsonify(state.export())
