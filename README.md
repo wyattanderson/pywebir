@@ -6,6 +6,12 @@ conditioners. It uses a [USB IR
 Toy](http://dangerousprototypes.com/docs/USB_Infrared_Toy) and a [Raspberry
 Pi](http://www.raspberrypi.org/) to accomplish the task.
 
+This is a toy project and as such is needlessly complex: it uses Redis as
+a datastore and message queue for a Celery distributed task worker that
+actually sends the IR commands as they occur. So, it's pretty fast, consistent
+and commands will always execute in order, but there's a fair bit of setup
+involved.
+
 ## Screenshot
 
 ![iPhone 5](http://wyattanderson.github.io/pywebir/screenshot.png)
@@ -25,8 +31,10 @@ the serial port:
     # useradd -G wheel,uucp -m <YOUR USER>
     # passwd <YOUR USER>
 
-Set up a virtualenv:
+Clone the `pywebir` repo and set up a virtualenv:
 
+    $ git clone git@github.com:wyattanderson/pywebir.git
+    $ cd pywebir
     $ virtualenv-2.7 env
     $ source env/bin/activate
     $ pip install -r requirements.txt
