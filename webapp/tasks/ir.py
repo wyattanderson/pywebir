@@ -4,7 +4,7 @@ import time
 from capture import TransmitIrToy
 from celery.signals import worker_shutdown
 from celery.utils.log import get_task_logger
-from webapp import settings
+from webapp import app
 from webapp.tasks import celery
 
 logger = get_task_logger(__name__)
@@ -14,7 +14,7 @@ def sleep():
 
 @celery.task
 def send_ir_command(irdata):
-    if settings.SKIP_IR:
+    if app.config['SKIP_IR']:
         logger.warn("Received IR command, but skipping transmission")
         return
 

@@ -8,7 +8,7 @@ import time
 from flask import render_template, jsonify, url_for
 from state import ACState
 from tasks.ir import send_ir_command
-from webapp import app, redis, settings
+from webapp import app, redis
 
 BUTTON_DIR = os.path.join(os.path.dirname(__file__), 'button_json')
 buttons = dict()
@@ -22,15 +22,15 @@ for button_file in os.listdir(BUTTON_DIR):
 
 def get_state():
     state = None
-    if redis.exists(settings.REDIS_SETTINGS_KEY):
+    if redis.exists(app.config['REDIS_SETTINGS_KEY']):
         state = pickle.loads(redis.get(
-            settings.REDIS_SETTINGS_KEY))
+            app.config['REDIS_SETTINGS_KEY']))
     else:
         state = ACState()
     return state
 
 def save_state(state):
-    redis.set(settings.REDIS_SETTINGS_KEY,
+    redis.set(app.config['REDIS_SETTINGS_KEY'],
               pickle.dumps(state))
 
 @app.route("/")

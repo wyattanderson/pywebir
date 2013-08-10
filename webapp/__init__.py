@@ -48,7 +48,7 @@ js = Bundle(
         output='assets/js/base.js')
 assets.register('js', js)
 
-redis = StrictRedis(host=settings.REDIS_HOST,
-                    port=settings.REDIS_PORT)
+redis = StrictRedis(host=app.config['REDIS_HOST'],
+                    port=app.config['REDIS_PORT'])
 
 import views
