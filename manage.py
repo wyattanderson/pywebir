@@ -9,8 +9,6 @@ from webapp import app
 from webapp import assets as assets_env
 from webapp.tasks import celery
 
-server = Server(host="0.0.0.0", port=5000)
-
 manager = Manager(app)
 manager.add_command("assets", ManageAssets(assets_env))
 manager.add_command("runserver", Server(host="0.0.0.0",
