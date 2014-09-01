@@ -64,7 +64,6 @@ def do_button(button):
 class StateView(MethodView):
     @classmethod
     def get(cls):
-        import time; time.sleep(1)
         state = get_state()
         return jsonify(state.export())
 
