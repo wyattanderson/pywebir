@@ -5,7 +5,8 @@ import pickle
 import serial
 import time
 
-from flask import render_template, jsonify, url_for
+from flask import render_template, jsonify, url_for, request
+from flask.views import MethodView
 from state import ACState
 from tasks.ir import send_ir_command
 from webapp import app, redis
@@ -42,6 +43,7 @@ def index():
             'buttons': buttons.values(),
             'state': state.export(),
             'apiUrl': url_for('.do_button', button='PLACEHOLDER'),
+            'stateUrl': url_for('.state'),
             }
     return render_template('index.jade', config=config)
 
@@ -59,7 +61,26 @@ def do_button(button):
         send_ir_command.delay(buf)
     return jsonify(state.export())
 
-@app.route("/state/")
-def state():
-    state = get_state()
-    return jsonify(state.export())
+class StateView(MethodView):
+    @classmethod
+    def get(cls):
+        import time; time.sleep(1)
+        state = get_state()
+        return jsonify(state.export())
+
+    @classmethod
+    def patch(cls):
+        button = request.json.get('_button')
+        state = get_state()
+
+        should_send = state.apply_button(button)
+        save_state(state)
+
+        button_data = buttons[button]
+        buf = bytearray(base64.b64decode(button_data['irdata']))
+        if should_send:
+            send_ir_command.delay(buf)
+        return cls.get()
+
+app.add_url_rule('/state/', view_func=StateView.as_view('state'))
+

@@ -26,5 +26,9 @@ body
             li.mode <%= {0: 'eco', 1: 'cool', 2: 'fan'}[mode] %>
             li.auto(class="<%= auto ? 'auto-enabled' : 'auto-disabled' %>") auto
         .temperature <%= temperature %>&deg; F
+        .spinner
+            .bounce1
+            .bounce2
+            .bounce3
     script(type="text/javascript")
         IRApp.start(JSON.parse('{{ config|tojson|safe }}'));

@@ -18,6 +18,9 @@ IRApp.on 'start', (options) ->
     IRApp.controls.show collectionView
 
     state = new State options.state
+    state.url = options.stateUrl
+    state.set 'id', _.uniqueId()
+
     stateView = new StateView
         model: state
     IRApp.display.show stateView
@@ -25,13 +28,25 @@ IRApp.on 'start', (options) ->
     state.on 'change', ->
         stateView.render()
 
+    state.on 'request', ->
+        IRApp.trigger.apply IRApp, ['state-request', arguments...]
+
+    state.on 'sync', ->
+        IRApp.trigger.apply IRApp, ['state-sync', arguments...]
+
     collectionView.on 'itemview:click', (itemView, id, cb) ->
-        $.ajax
-            url: options.apiUrl.replace 'PLACEHOLDER', id
-            success: (newState) ->
-                state.set newState
-                console.log state
-                cb newState
+        state.save
+            _button: id
+        ,
+            patch: true
+
+    handleVisibilityChange = ->
+        if document.hidden
+            return
+
+        do state.fetch
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
 class State extends Backbone.Model
 
@@ -58,12 +73,14 @@ class ButtonView extends Backbone.Marionette.ItemView
     ui:
         button: 'button'
 
-    handleAction: (event) ->
-        @trigger 'click', @model.get('id'), @onSuccess
-        @ui.button.attr 'disabled', 'disabled'
+    onShow: ->
+        @listenTo IRApp, 'state-request', =>
+            @ui.button.attr 'disabled', 'disabled'
+        @listenTo IRApp, 'state-sync', =>
+            @ui.button.removeAttr 'disabled'
 
-    onSuccess: =>
-        @ui.button.removeAttr 'disabled'
+    handleAction: (event) ->
+        @trigger 'click', @model.get('id')
 
 class ButtonCollectionView extends Backbone.Marionette.CollectionView
     tagName: 'ul'
@@ -74,6 +91,9 @@ class StateView extends Backbone.Marionette.ItemView
     template: '#state-view'
     className: 'state-view'
 
+    ui:
+        spinner: '.spinner'
+
     onRender: ->
         if @model.get 'power'
             @$el.addClass('power-on')
@@ -81,3 +101,9 @@ class StateView extends Backbone.Marionette.ItemView
         else
             @$el.addClass('power-off')
                 .removeClass('power-on')
+
+        @listenTo IRApp,
+            'state-request': =>
+                @$el.addClass 'state-syncing'
+            'state-sync': =>
+                @$el.removeClass 'state-syncing'
